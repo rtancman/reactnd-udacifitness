@@ -1,15 +1,17 @@
 import React, { Component } from 'react'
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import {
   getMetricMetaInfo,
   timeToString,
-  getDailyReminderValue
+  getDailyReminderValue,
+  clearLocalNotification,
+  setLocalNotification
 } from '../utils/helpers'
-import TextButton from './TextButton'
 import UdaciSlider from './UdaciSlider'
 import UdaciSteppers from './UdaciSteppers'
 import DateHeader from './DateHeader'
+import { Ionicons } from '@expo/vector-icons'
+import TextButton from './TextButton'
 import { submitEntry, removeEntry } from '../utils/api'
 import { connect } from 'react-redux'
 import { addEntry } from '../actions'
@@ -25,7 +27,6 @@ function SubmitBtn ({ onPress }) {
     </TouchableOpacity>
   )
 }
-
 class AddEntry extends Component {
   state = {
     run: 0,
@@ -34,7 +35,6 @@ class AddEntry extends Component {
     sleep: 0,
     eat: 0,
   }
-
   increment = (metric) => {
     const { max, step } = getMetricMetaInfo(metric)
 
@@ -47,7 +47,6 @@ class AddEntry extends Component {
       }
     })
   }
-
   decrement = (metric) => {
     this.setState((state) => {
       const count = state[metric] - getMetricMetaInfo(metric).step
@@ -58,38 +57,42 @@ class AddEntry extends Component {
       }
     })
   }
-
   slide = (metric, value) => {
     this.setState(() => ({
       [metric]: value
     }))
   }
-
   submit = () => {
     const key = timeToString()
     const entry = this.state
+
     this.props.dispatch(addEntry({
       [key]: entry
     }))
-    this.setState(() => ({ run: 0, bike: 0, swim: 0, sleep: 0, eat: 0 }))
-    this.toHome()
-    submitEntry({ key, entry })
-    // Clear local notification
-  }
 
+    this.setState(() => ({ run: 0, bike: 0, swim: 0, sleep: 0, eat: 0 }))
+
+    this.toHome()
+
+    submitEntry({ key, entry })
+
+    clearLocalNotification()
+      .then(setLocalNotification)
+  }
   reset = () => {
     const key = timeToString()
+
     this.props.dispatch(addEntry({
       [key]: getDailyReminderValue()
     }))
+
     this.toHome()
+
     removeEntry(key)
   }
-
   toHome = () => {
     this.props.navigation.dispatch(NavigationActions.back({key: 'AddEntry'}))
   }
-
   render() {
     const metaInfo = getMetricMetaInfo()
 
@@ -185,6 +188,7 @@ const styles = StyleSheet.create({
 
 function mapStateToProps (state) {
   const key = timeToString()
+
   return {
     alreadyLogged: state[key] && typeof state[key].today === 'undefined'
   }
@@ -192,4 +196,4 @@ function mapStateToProps (state) {
 
 export default connect(
   mapStateToProps
-)(AddEntry) 
+)(AddEntry)
