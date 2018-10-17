@@ -168,7 +168,7 @@ export function timeToString (time = Date.now()) {
 
 export function clearLocalNotification () {
   return AsyncStorage.removeItem(NOTIFICATION_KEY)
-    .then(Notifications.cancelAllScheduledNotificationAsync)
+    .then(Notifications.cancelAllScheduledNotificationsAsync)
 }
 
 function createNotification () {
@@ -195,7 +195,7 @@ export function setLocalNotification () {
         Permissions.askAsync(Permissions.NOTIFICATIONS)
           .then(({ status }) => {
             if (status === 'granted') {
-              Notifications.cancelAllScheduledNotificationAsync()
+              Notifications.cancelAllScheduledNotificationsAsync()
 
               let tomorrow = new Date()
               tomorrow.setDate(tomorrow.getDate() + 1)
